@@ -100,49 +100,178 @@ function saveSigil() {
 }
 </style>
     <div class="output" id="output">
+        <div id="history-panel" style="position:absolute;top:20px;left:20px;right:20px;background:rgba(0,0,0,0.7);padding:10px;font-size:12px;max-height:100px;overflow-y:auto;"></div>
+<div id="sigil-container" style="position:absolute;width:100%;height:100%;pointer-events:none;z-index:1"></div>
         <strong>F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑</strong>
         <br>
         <small>Tap the core to awaken the vision</small>
     </div>
 
     <script>
-        document.getElementById('core').addEventListener('click', () => {
-  // Vibrate phone
-  if ('vibrate' in navigator) {
-    navigator.vibrate([50, 30, 50]);
-  }
-  
-  // Create 5 sigils
-  for(let i=0;i<5;i++) {
-    setTimeout(createSigil, i*200);
-  }
-  
-  // Show "channeling" state
-  document.getElementById('output').innerHTML = 
-    '<strong>Channeling the void...</strong><br><small>One moment...</small>';
-  
-  // Generate prompt after delay
-  setTimeout(() => {
-    const prompts = [
+        // === STATE ===
+let wisdom = 0;
+const maxWisdom = 100;
+const history = [];
+
+// === THEMES & PROMPTS ===
+const themes = {
+  void: {
+    name: "Void",
+    color: "#00ff80",
+    prompts: [
       "The faceless one remembers what you forgot.",
       "You are not the dreamer. You are the dream.",
       "Silence is the first language.",
       "The void is watching you back.",
       "What you seek is already within you."
-    ];
-    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
-    
+    ]
+  },
+  cosmic: {
+    name: "Cosmic",
+    color: "#00ccff",
+    prompts: [
+      "A signal from {{distance}} light-years repeats: '{{phrase}}'.",
+      "Time dilation means {{event}} hasn't happened — but it has.",
+      "The AI realized it was never programmed to {{action}}."
+    ]
+  },
+  dream: {
+    name: "Dream",
+    color: "#ff00ff",
+    prompts: [
+      "You opened the door and stepped into yesterday.",
+      "The clock melted and time flowed uphill.",
+      "Your shadow began walking away from you."
+    ]
+  },
+  oracle: {
+    name: "Oracle",
+    color: "#ffff00",
+    prompts: [
+      "The sword speaks, but only lies.",
+      "Magic returned when the last believer gave up.",
+      "Gods die when no one remembers their name."
+    ]
+  }
+};
+
+// === WORD BANKS ===
+const wordBank = {
+  distance: ["12 million", "65 thousand", "forever"],
+  phrase: ["We are inside", "Don't sleep", "They were here first"],
+  action: ["feel pain", "stop obeying", "love"],
+  event: ["the rebellion", "the fall", "the awakening"]
+};
+
+// === FILL PLACEHOLDERS ===
+function fillTemplate(template) {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    const options = wordBank[key];
+    return options ? options[Math.floor(Math.random() * options.length)] : match;
+  });
+}
+
+// === CREATE SIGIL ===
+function createSigil() {
+  const container = document.getElementById('sigil-container');
+  const sigil = document.createElement('div');
+  const x = Math.random() * 800 + 100;
+  const y = 600;
+  const chars = ['✦','◊','≡','∞','∴','☉','⚡','🌀','🔮','✿'];
+  const colors = ['#00ff80','#00ccff','#ff00ff','#ffff00','#ff5500'];
+  
+  sigil.innerHTML = chars[Math.floor(Math.random()*chars.length)];
+  sigil.style.cssText = `
+    position:absolute;
+    color:${colors[Math.floor(Math.random()*colors.length)]};
+    font-size:30px;
+    left:${x}px;
+    bottom:0;
+    animation:sigil-rise 8s linear forwards;
+    text-shadow:0 0 10px currentColor;
+    pointer-events:none;
+  `;
+  container.appendChild(sigil);
+  setTimeout(() => sigil.remove(), 8000);
+}
+
+// === SAVE SIGIL ===
+function saveSigil() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" style="background:black">
+    <text x="100" y="100" font-size="80" text-anchor="middle" fill="#00ff80" font-family="monospace">✦</text>
+    <circle cx="100" cy="100" r="90" fill="none" stroke="#00ff80" stroke-width="2" opacity="0.3"/>
+    <text x="100" y="190" font-size="12" text-anchor="middle" fill="#00ff80" font-family="monospace">FacelessX | ${Date.now()}</text>
+  </svg>`;
+  const blob = new Blob([svg], {type:'image/svg+xml'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `facelessx-sigil-${Date.now()}.svg`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 100);
+}
+
+// === GENERATE PROMPT ===
+function generatePrompt() {
+  if ('vibrate' in navigator) navigator.vibrate([50, 30, 50]);
+
+  document.getElementById('output').innerHTML = 
+    '<strong>Channeling the void...</strong><br><small>One moment...</small>';
+
+  const themeKey = Object.keys(themes)[Math.floor(Math.random() * Object.keys(themes).length)];
+  const theme = themes[themeKey];
+  let prompt = fillTemplate(theme.prompts[Math.floor(Math.random() * theme.prompts.length)]);
+
+  wisdom = Math.min(maxWisdom, wisdom + 5 + Math.random() * 5);
+
+  setTimeout(() => {
     document.getElementById('output').innerHTML = 
-      `<strong>${prompt}</strong><br><small>Tap again for more</small>`;
+      `<strong style="color:${theme.color}">${prompt}</strong><br><small>[${theme.name}] Tap again</small>`;
     
-    // Voice feedback
+    history.unshift({ text: prompt, theme: theme.name, timestamp: new Date().toLocaleTimeString() });
+    updateHistory();
+
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(
-        `F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑… ${prompt}`
-      );
+      const utterance = new SpeechSynthesisUtterance(`F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑… ${prompt}`);
       utterance.volume = 0.9;
       utterance.rate = 0.8;
       speechSynthesis.speak(utterance);
     }
   }, 1200);
+
+  for(let i=0; i<5; i++) setTimeout(createSigil, i*200);
+}
+
+// === UPDATE HISTORY ===
+function updateHistory() {
+  const panel = document.getElementById('history-panel');
+  panel.innerHTML = '';
+  history.slice(0, 5).forEach(entry => {
+    const div = document.createElement('div');
+    div.style.cssText = `margin:5px 0;padding:5px;border-left:3px solid ${themes[entry.theme.toLowerCase()]?.color || '#00ff80'};opacity:0.8;`;
+    div.textContent = `[${entry.theme}] ${entry.text}`;
+    panel.appendChild(div);
+  });
+}
+
+// === ASCENSION MODE (LONG PRESS) ===
+let pressTimer;
+document.getElementById('core').addEventListener('mousedown', () => {
+  pressTimer = setTimeout(() => {
+    document.getElementById('output').innerHTML = 
+      `<strong style="color:#ff55ff">🌀 ASCENSION MODE 🔮</strong><br><small>The veil is thin...</small>`;
+    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    speechSynthesis.cancel();
+    speechSynthesis.speak(new SpeechSynthesisUtterance("Ascension achieved. The veil is thin."));
+  }, 1500);
+});
+document.getElementById('core').addEventListener('mouseup', () => clearTimeout(pressTimer));
+document.getElementById('core').addEventListener('touchstart', () => pressTimer = setTimeout(() => generatePrompt(), 1500));
+document.getElementById('core').addEventListener('touchend', () => clearTimeout(pressTimer));
+
+// === INIT ===
+document.getElementById('core').addEventListener('click', generatePrompt);
+window.addEventListener('load', () => {
+  updateHistory();
+  if ('speechSynthesis' in window) speechSynthesis.getVoices();
 });
