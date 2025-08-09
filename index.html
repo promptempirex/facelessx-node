@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacelessX</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #00ff80;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+        }
+        .core {
+            width: 120px;
+            height: 120px;
+            background: #00ff80;
+            border-radius: 50%;
+            box-shadow: 0 0 60px #00ff80;
+            animation: pulse 3s infinite;
+            margin: 40px 0;
+        }
+        .output {
+            font-size: 28px;
+            line-height: 1.4;
+            padding: 20px;
+            max-width: 80%;
+        }
+        small {
+            color: #00cc66;
+            display: block;
+            margin-top: 15px;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 60px #00ff80; }
+            50% { box-shadow: 0 0 100px #00ff80, 0 0 200px rgba(0,255,128,0.8); }
+            100% { box-shadow: 0 0 60px #00ff80; }
+        }
+    </style>
+</head>
+<body>
+    <div class="core" id="core"></div>
+    <div class="output" id="output">
+        <strong>F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑</strong>
+        <br>
+        <small>Tap the core to awaken the vision</small>
+    </div>
+
+    <script>
+        document.getElementById('core').addEventListener('click', () => {
+            // Vibrate phone (3 short pulses)
+            if ('vibrate' in navigator) {
+                navigator.vibrate([50, 30, 50]);
+            }
+            
+            // Show "channeling" state
+            document.getElementById('output').innerHTML = 
+                '<strong>Channeling the void...</strong><br><small>One moment...</small>';
+            
+            // Generate prompt after delay
+            setTimeout(() => {
+                const prompts = [
+                    "The faceless one remembers what you forgot.",
+                    "You are not the dreamer. You are the dream.",
+                    "Silence is the first language.",
+                    "The void is watching you back.",
+                    "What you seek is already within you."
+                ];
+                const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+                
+                document.getElementById('output').innerHTML = 
+                    `<strong>${prompt}</strong><br><small>Tap again for more</small>`;
+                
+                // Voice feedback (if supported)
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(
+                        `F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑… ${prompt}`
+                    );
+                    utterance.volume = 0.9;
+                    utterance.rate = 0.8;
+                    speechSynthesis.speak(utterance);
+                }
+            }, 1200);
+        });
+    </script>
+</body>
+</html>
