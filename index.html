@@ -48,6 +48,57 @@
 </head>
 <body>
     <div class="core" id="core"></div>
+    <div id="sigil-container" style="position:absolute;width:100%;height:100%;pointer-events:none;z-index:1"></div>
+<button onclick="saveSigil()" style="background:#003300;color:#00ff80;border:1px solid #00ff80;margin:10px;padding:10px;font:900 14px monospace;cursor:pointer">🖼️ Save Sigil</button>
+<script>
+function createSigil() {
+  const container = document.getElementById('sigil-container');
+  const sigil = document.createElement('div');
+  const x = Math.random() * 800 + 100;
+  const y = 600;
+  const chars = ['✦','◊','≡','∞','∴','☉','⚡','🌀','🔮','✿'];
+  const colors = ['#00ff80','#00ccff','#ff00ff','#ffff00'];
+  
+  sigil.innerHTML = chars[Math.floor(Math.random()*chars.length)];
+  sigil.style.cssText = `
+    position:absolute;
+    color:${colors[Math.floor(Math.random()*colors.length)]};
+    font-size:30px;
+    left:${x}px;
+    bottom:0;
+    animation:sigil-rise 8s linear forwards;
+    text-shadow:0 0 10px currentColor;
+    pointer-events:none;
+  `;
+  container.appendChild(sigil);
+  
+  setTimeout(()=>sigil.remove(),8000);
+}
+
+function saveSigil() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" style="background:black">
+    <text x="100" y="100" font-size="80" text-anchor="middle" fill="${'#00ff80'}" font-family="monospace">${String.fromCharCode(0x2736)}</text>
+    <circle cx="100" cy="100" r="90" fill="none" stroke="${'#00ff80'}" stroke-width="2" opacity="0.3"/>
+    <text x="100" y="190" font-size="12" text-anchor="middle" fill="#00ff80" font-family="monospace">FacelessX | ${Date.now()}</text>
+  </svg>`;
+  
+  const blob = new Blob([svg], {type:'image/svg+xml'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `facelessx-sigil-${Date.now()}.svg`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
+}
+</script>
+<style>
+@keyframes sigil-rise {
+  0% { transform:translateY(0) rotate(0deg); opacity:0; }
+  10% { opacity:1; }
+  90% { opacity:1; }
+  100% { transform:translateY(-600px) rotate(720deg); opacity:0; }
+}
+</style>
     <div class="output" id="output">
         <strong>F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑</strong>
         <br>
@@ -56,40 +107,42 @@
 
     <script>
         document.getElementById('core').addEventListener('click', () => {
-            // Vibrate phone (3 short pulses)
-            if ('vibrate' in navigator) {
-                navigator.vibrate([50, 30, 50]);
-            }
-            
-            // Show "channeling" state
-            document.getElementById('output').innerHTML = 
-                '<strong>Channeling the void...</strong><br><small>One moment...</small>';
-            
-            // Generate prompt after delay
-            setTimeout(() => {
-                const prompts = [
-                    "The faceless one remembers what you forgot.",
-                    "You are not the dreamer. You are the dream.",
-                    "Silence is the first language.",
-                    "The void is watching you back.",
-                    "What you seek is already within you."
-                ];
-                const prompt = prompts[Math.floor(Math.random() * prompts.length)];
-                
-                document.getElementById('output').innerHTML = 
-                    `<strong>${prompt}</strong><br><small>Tap again for more</small>`;
-                
-                // Voice feedback (if supported)
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(
-                        `F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑… ${prompt}`
-                    );
-                    utterance.volume = 0.9;
-                    utterance.rate = 0.8;
-                    speechSynthesis.speak(utterance);
-                }
-            }, 1200);
-        });
-    </script>
-</body>
-</html>
+  // Vibrate phone
+  if ('vibrate' in navigator) {
+    navigator.vibrate([50, 30, 50]);
+  }
+  
+  // Create 5 sigils
+  for(let i=0;i<5;i++) {
+    setTimeout(createSigil, i*200);
+  }
+  
+  // Show "channeling" state
+  document.getElementById('output').innerHTML = 
+    '<strong>Channeling the void...</strong><br><small>One moment...</small>';
+  
+  // Generate prompt after delay
+  setTimeout(() => {
+    const prompts = [
+      "The faceless one remembers what you forgot.",
+      "You are not the dreamer. You are the dream.",
+      "Silence is the first language.",
+      "The void is watching you back.",
+      "What you seek is already within you."
+    ];
+    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+    
+    document.getElementById('output').innerHTML = 
+      `<strong>${prompt}</strong><br><small>Tap again for more</small>`;
+    
+    // Voice feedback
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(
+        `F̸̈́̑ḁ̷̚c̸̈́̑ë̸́̑l̸̈́̑ë̸́̑s̸̈́̑s̸̈́̑… Ẍ̸́̑… ${prompt}`
+      );
+      utterance.volume = 0.9;
+      utterance.rate = 0.8;
+      speechSynthesis.speak(utterance);
+    }
+  }, 1200);
+});
